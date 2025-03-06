@@ -4,69 +4,86 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    public float moveSpeed = 5f;
-    public float jumpForce = 7f;
-    public Transform groundCheck;
-    public LayerMask groundLayer;
-
-    private Rigidbody2D rb;
+    public float Speed;
+    public float JumpForce;
+    public bool isJumping;
+    private Rigidbody2D rig;
     private Animator anim;
-    private bool isGrounded;
     private bool isAttacking;
 
     void Start()
     {
-        rb = GetComponent<Rigidbody2D>();
+        rig = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
     }
 
     void Update()
     {
-        // Verifica se está no chão
-        isGrounded = Physics2D.OverlapCircle(groundCheck.position, 0.2f, groundLayer);
+        Move();
+        Jump();
+        Attack();
+    }
 
-        // Movimentação
-        float moveInput = Input.GetAxis("Horizontal");
-        rb.velocity = new Vector2(moveInput * moveSpeed, rb.velocity.y);
+    void Move()
+    {
+        Vector3 movement = new Vector3(Input.GetAxis("Horizontal"), 0f, 0f);
+        transform.position += movement * Time.deltaTime * Speed;
         
-        // Definir animação de movimento
-        anim.SetFloat("Speed", Mathf.Abs(moveInput));
-
-        // Flip do personagem
-        if (moveInput > 0)
-            transform.localScale = new Vector3(1, 1, 1);
-        else if (moveInput < 0)
-            transform.localScale = new Vector3(-1, 1, 1);
-
-        // Pulo
-        if (Input.GetButtonDown("Jump") && isGrounded)
+        if (Input.GetAxis("Horizontal") > 0f)
         {
-            rb.velocity = new Vector2(rb.velocity.x, jumpForce);
-            anim.SetTrigger("Jump");
+            anim.SetBool("walk", true);
+            transform.eulerAngles = new Vector3(0f, 0f, 0f);
         }
-
-        // Ataque
-        if (Input.GetKeyDown(KeyCode.X) && !isAttacking)
+        else if (Input.GetAxis("Horizontal") < 0f)
         {
-            StartCoroutine(Attack());
-        }
-
-        // Definir animação de idle se estiver parado
-        if (isGrounded && moveInput == 0 && !isAttacking)
-        {
-            anim.SetBool("Idle", true);
+            anim.SetBool("walk", true);
+            transform.eulerAngles = new Vector3(0f, 180f, 0f);
         }
         else
         {
-            anim.SetBool("Idle", false);
+            anim.SetBool("walk", false);
         }
     }
 
-    IEnumerator Attack()
+    void Jump()
+    {
+        if (Input.GetButtonDown("Jump") && !isJumping)
+        {
+            rig.AddForce(new Vector2(0f, JumpForce), ForceMode2D.Impulse);
+            anim.SetBool("jump", true);
+        }
+    }
+
+    void OnCollisionEnter2D(Collision2D collision)
+{
+    if (collision.gameObject.layer == LayerMask.NameToLayer("Ground"))
+    {
+        isJumping = false;
+        anim.SetBool("jump", false);
+    }
+}
+
+void OnCollisionExit2D(Collision2D collision)
+{
+    if (collision.gameObject.layer == LayerMask.NameToLayer("Ground"))
+    {
+        isJumping = true;
+    }
+}
+
+    void Attack()
+    {
+        if (Input.GetKeyDown(KeyCode.X))
+        {
+            StartCoroutine(PerformAttack());
+        }
+    }
+
+    IEnumerator PerformAttack()
     {
         isAttacking = true;
-        anim.SetTrigger("Attack");
-        yield return new WaitForSeconds(0.5f); // Tempo do ataque
+        anim.SetTrigger("attack");
+        yield return new WaitForSeconds(0.5f);
         isAttacking = false;
     }
 }
