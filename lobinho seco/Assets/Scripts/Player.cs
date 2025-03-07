@@ -57,7 +57,7 @@ public class Player : MonoBehaviour
 {
     anim.SetBool("jump", true); // Ativa a animação de pulo (incluindo a preparação)
     
-    yield return new WaitForSeconds(1.6f); // Espera a animação de preparação terminar
+    yield return new WaitForSeconds(2.3f); // Espera a animação de preparação terminar
 
     rig.AddForce(new Vector2(0f, JumpForce), ForceMode2D.Impulse); // Executa o pulo real
     isJumping = true;
