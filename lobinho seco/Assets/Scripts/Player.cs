@@ -93,6 +93,8 @@ void OnCollisionExit2D(Collision2D collision)
         isAttacking = true;
         anim.SetTrigger("attack");
         yield return new WaitForSeconds(0.5f);
+
+        anim.ResetTrigger("attack"); 
         isAttacking = false;
     }
 }
