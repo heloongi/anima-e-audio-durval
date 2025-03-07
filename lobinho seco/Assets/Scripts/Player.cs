@@ -46,17 +46,26 @@ public class Player : MonoBehaviour
     }
 
     void Jump()
+{
+    if (Input.GetButtonDown("Jump") && !isJumping)
     {
-        if (Input.GetButtonDown("Jump") && !isJumping)
-        {
-            rig.AddForce(new Vector2(0f, JumpForce), ForceMode2D.Impulse);
-            anim.SetBool("jump", true);
-        }
+        StartCoroutine(PerformJump());
     }
+}
+
+    IEnumerator PerformJump()
+{
+    anim.SetBool("jump", true); // Ativa a animação de pulo (incluindo a preparação)
+    
+    yield return new WaitForSeconds(1.6f); // Espera a animação de preparação terminar
+
+    rig.AddForce(new Vector2(0f, JumpForce), ForceMode2D.Impulse); // Executa o pulo real
+    isJumping = true;
+}
 
     void OnCollisionEnter2D(Collision2D collision)
 {
-    if (collision.gameObject.layer == LayerMask.NameToLayer("Ground"))
+    if (collision.gameObject.CompareTag("Ground"))
     {
         isJumping = false;
         anim.SetBool("jump", false);
@@ -65,7 +74,7 @@ public class Player : MonoBehaviour
 
 void OnCollisionExit2D(Collision2D collision)
 {
-    if (collision.gameObject.layer == LayerMask.NameToLayer("Ground"))
+    if (collision.gameObject.CompareTag("Ground"))
     {
         isJumping = true;
     }
